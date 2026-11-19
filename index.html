@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Claims Spicy: the gaps close before the claim goes out (DS 3.0)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== Design System 3.0 tokens (from Figma: Theme, Value, Type Ladder) ===== */
+:root{
+  --ds-font:"Geist",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ds-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ds-shell:#f1f3fe; --ds-base:#ffffff; --ds-1:#fafafa; --ds-2:#f5f5f5; --ds-3:#e5e5e5;
+  --ds-fg1:#1f1f1f; --ds-fg2:#454545; --ds-fg3:#737373;
+  --ds-accent:#1132ee; --ds-accent-hover:#0d28bf; --ds-accent-25:#f1f3fe; --ds-accent-50:#e7eafd; --ds-accent-100:#cfd6fc;
+  --ds-border:rgba(0,0,0,.10); --ds-border-strong:rgba(0,0,0,.20);
+  --ds-success:#228048; --ds-success-bg:rgba(42,153,83,.10);
+  --ds-warning:#9f5617; --ds-warning-bg:rgba(194,112,35,.10);
+  --ds-danger:#b52b2b;  --ds-danger-bg:rgba(181,43,43,.10);
+  --ds-info:#345dbf;    --ds-info-bg:rgba(65,107,207,.10);
+  --ds-teal:#1e756e;    --ds-teal-bg:rgba(36,147,136,.10);
+  --ds-violet:#6545a0;  --ds-violet-bg:rgba(129,88,205,.10);
+  --ds-slate:#323f54;   --ds-slate-bg:rgba(71,85,105,.10);
+  --ds-rd-s:4px; --ds-rd:8px; --ds-rd-l:12px; --ds-rd-xl:16px; --ds-rd-full:100px;
+  --ds-side:208px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ds-shell:#111324; --ds-base:#141414; --ds-1:#1f1f1f; --ds-2:#262626; --ds-3:#2b2b2b;
+    --ds-fg1:#e5e5e5; --ds-fg2:#a3a3a3; --ds-fg3:#737373;
+    --ds-accent:#405bf2; --ds-accent-hover:#7084f5; --ds-accent-25:#111324; --ds-accent-50:#121833; --ds-accent-100:#0e1640;
+    --ds-border:rgba(255,255,255,.10); --ds-border-strong:rgba(255,255,255,.20);
+    --ds-success:#41c589; --ds-success-bg:rgba(42,153,83,.20);
+    --ds-warning:#e39751; --ds-warning-bg:rgba(194,112,35,.20);
+    --ds-danger:#d76268;  --ds-danger-bg:rgba(181,43,43,.20);
+    --ds-info:#6e93ed;    --ds-info-bg:rgba(65,107,207,.20);
+    --ds-teal:#64d4c6;    --ds-teal-bg:rgba(36,147,136,.20);
+    --ds-violet:#b5a2eb;  --ds-violet-bg:rgba(129,88,205,.20);
+    --ds-slate:#cbd5e1;   --ds-slate-bg:rgba(71,85,105,.20);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--ds-font);font-size:14px;line-height:1.5;color:var(--ds-fg1);background:var(--ds-shell);padding-left:var(--ds-side);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit} button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ds-accent);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums} .muted{color:var(--ds-fg2)} .faint{color:var(--ds-fg3)} .small{font-size:12px}
+/* Side nav (DS 3.0 Air App Shell) */
+.ds-side{position:fixed;left:0;top:0;bottom:0;width:var(--ds-side);background:var(--ds-shell);padding:12px 8px;display:flex;flex-direction:column;z-index:20}
+.ds-logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:18px;padding:4px 8px 16px}
+.ds-logo svg{width:20px;height:20px}
+.ds-nav a,.ds-group{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:var(--ds-rd);color:var(--ds-fg2);font-size:14px;font-weight:500;text-decoration:none}
+.ds-nav a.on{background:var(--ds-accent-50);color:var(--ds-accent)}
+.ds-nav svg,.ds-foot svg{width:16px;height:16px;flex:none}
+.ds-group{color:var(--ds-fg1);margin-top:12px}
+.ds-sub{margin-left:15px;padding-left:8px;border-left:1px solid var(--ds-border)}
+.ds-foot{margin-top:auto;border-top:1px solid var(--ds-border);padding:12px 8px 0;display:flex;align-items:center;gap:10px;color:var(--ds-fg2)}
+.ds-me{width:28px;height:28px;border-radius:50%;background:var(--ds-success-bg);color:var(--ds-success);display:grid;place-items:center;font-size:11px;font-weight:600}
+/* Top bar */
+.top{height:48px;display:flex;align-items:center;gap:14px;padding:0 12px}
+.crumbs{display:flex;align-items:center;gap:8px;color:var(--ds-fg2);font-size:15px;min-width:220px}
+.crumbs b{color:var(--ds-fg1);font-weight:500}
+.crumbs button{background:none;border:0;padding:2px 4px;border-radius:6px;color:var(--ds-fg2);font-size:15px}
+.search{flex:1;max-width:420px;margin:0 auto;height:32px;border-radius:var(--ds-rd);background:var(--ds-2);display:flex;align-items:center;justify-content:center;gap:6px;color:var(--ds-fg3);font-size:13px}
+.search kbd{font:inherit;font-size:11px;border:1px solid var(--ds-border);border-radius:4px;padding:0 4px;background:var(--ds-base)}
+.ai-btn{display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--ds-rd);border:0;background:var(--ds-accent-50);color:var(--ds-accent);font-weight:500}
+.emb{width:14px;height:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='60%25'%3E%3Cstop offset='0' stop-color='%231132ee' stop-opacity='.95'/%3E%3Cstop offset='1' stop-color='%237084f5' stop-opacity='.25'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='20' cy='11.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='20' cy='28.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='11.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3Cellipse cx='28.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3C/svg%3E") center/contain no-repeat}
+.ai-btn.working .emb{animation:spin 1.2s linear infinite}
+.ghost-btn{height:32px;padding:0 10px;border-radius:var(--ds-rd-full);border:1px dashed var(--ds-border-strong);background:none;color:var(--ds-fg2);font-size:12px}
+.main{padding:0 12px 12px;height:calc(100vh - 48px)}
+/* Shared */
+.av{width:28px;height:28px;border-radius:50%;flex:none;display:inline-block;background:var(--ds-accent-25) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='60%25'%3E%3Cstop offset='0' stop-color='%231132ee' stop-opacity='.95'/%3E%3Cstop offset='1' stop-color='%237084f5' stop-opacity='.25'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='20' cy='11.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='20' cy='28.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='11.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3Cellipse cx='28.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3C/svg%3E") center/70% no-repeat}
+.av.pay{background:var(--ds-violet-bg);display:grid;place-items:center} .av.pat{background:var(--ds-teal-bg);display:grid;place-items:center}
+.mk{width:11px;height:11px;display:inline-block;flex:none}
+.mk.site{border-radius:50%;background:var(--ds-accent)}
+.mk.patient{border-radius:3px;background:var(--ds-teal)}
+.mk.payer{background:var(--ds-violet);transform:rotate(45deg) scale(.82)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--ds-rd);white-space:nowrap}
+.tag.need{background:var(--ds-warning-bg);color:var(--ds-warning)} .tag.ok{background:var(--ds-success-bg);color:var(--ds-success)} .tag.run{background:var(--ds-accent-50);color:var(--ds-accent)}
+.btn{height:32px;padding:0 14px;border-radius:var(--ds-rd-full);border:1px solid var(--ds-border-strong);background:var(--ds-base);font-weight:500;white-space:nowrap;display:inline-flex;align-items:center}
+.btn:hover{background:var(--ds-2)} .btn.primary{background:var(--ds-accent);border-color:var(--ds-accent);color:#fff} .btn.primary:hover{background:var(--ds-accent-hover)}
+.btn.sm{height:28px;font-size:13px;padding:0 12px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.link{background:none;border:0;padding:0;color:var(--ds-accent);font-weight:500}
+.spin{width:10px;height:10px;border-radius:50%;border:2px solid var(--ds-accent);border-right-color:transparent;display:inline-block;animation:spin .8s linear infinite;flex:none}
+/* Home */
+.station{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;height:100%}
+.wl{background:var(--ds-base);border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.wl-tabs{display:flex;align-items:center;gap:4px;padding:10px 12px;border-bottom:1px solid var(--ds-border)}
+.wl-tabs button{border:0;background:none;padding:6px 10px;border-radius:var(--ds-rd);font-size:14px}
+.wl-tabs button[aria-selected="true"]{background:var(--ds-accent-50);color:var(--ds-accent)}
+.wl-tabs .sp{flex:1}
+.wl-bar{padding:10px 14px;border-bottom:1px solid var(--ds-border)}
+.lead{display:flex;align-items:center;gap:10px}
+.lead .av{width:24px;height:24px}
+.wl-scroll{overflow:auto;flex:1}
+.wt{width:100%;border-collapse:collapse}
+.wt th{position:sticky;top:0;z-index:1;background:var(--ds-2);text-align:left;font-weight:500;font-size:13px;padding:9px 12px;border-bottom:1px solid var(--ds-border);white-space:nowrap}
+.wt td{padding:10px 12px;border-bottom:1px solid var(--ds-border);vertical-align:middle;white-space:nowrap}
+.wt td.q{white-space:normal;min-width:300px}
+.wt td.r,.wt th.r{text-align:right}
+.wt tr.row{cursor:pointer} .wt tr.row:hover td{background:var(--ds-1)}
+.cb{width:15px;height:15px;border:1.5px solid var(--ds-border-strong);border-radius:4px;display:inline-block;vertical-align:middle}
+.plink{color:var(--ds-accent)}
+.grp td{background:var(--ds-1);padding:8px 12px}
+.gt{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;flex-wrap:wrap}
+.caret{width:8px;height:8px;border-right:1.6px solid var(--ds-fg2);border-bottom:1.6px solid var(--ds-fg2);transform:rotate(45deg);margin:0 6px 0 4px}
+.grp.open .caret{transform:rotate(-135deg)}
+.gchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ds-border-strong);border-radius:var(--ds-rd);padding:3px 10px;background:var(--ds-base);font-size:13px;font-weight:500}
+.gchip.muted{color:var(--ds-fg2);font-weight:400}
+.gchip.needc{background:var(--ds-warning-bg);color:var(--ds-warning);border-color:transparent}
+.gchip.runc{background:var(--ds-accent-50);color:var(--ds-accent);border-color:transparent}
+.gchip .cnt{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--ds-warning);color:#fff;font-size:11px;font-weight:700;display:inline-grid;place-items:center}
+.vs{display:inline-flex;align-items:center;gap:3px;margin-right:6px;vertical-align:-1px}
+.vs .x{width:8px;height:1.5px;background:var(--ds-warning)}
+.lanes{display:flex;gap:6px;flex-wrap:nowrap;min-width:400px}
+.ln{display:inline-flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;padding:3px 8px;border-radius:var(--ds-rd);border:1px solid var(--ds-border);color:var(--ds-fg3);transition:all .3s}
+.ln.run{border-color:var(--ds-accent);color:var(--ds-accent);background:var(--ds-accent-25)}
+.ln.ok{border-color:transparent;background:var(--ds-success-bg);color:var(--ds-success)}
+.ln.wait .mk{opacity:.4}
+.settling-done td{background:var(--ds-success-bg)}
+/* Today panel */
+.today{background:var(--ds-base);border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.today-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--ds-border)}
+.today-b{overflow:auto;padding:14px 16px;flex:1}
+.greet{margin:0 0 10px}
+.lbl{font-size:13px;font-weight:600;margin-bottom:8px}
+.todo{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);background:var(--ds-base);padding:10px 12px;margin-bottom:6px}
+.todo:hover{border-color:var(--ds-accent)}
+.td{width:8px;height:8px;border-radius:50%;background:var(--ds-warning);flex:none}
+.td.patient{background:var(--ds-teal)} .td.payer{background:var(--ds-violet)}
+.tt{flex:1;font-size:12px;color:var(--ds-fg2)} .tt b{display:block;font-size:13px;color:var(--ds-fg1);font-weight:600}
+.go{color:var(--ds-accent);font-weight:500;font-size:13px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 6px}
+.tile{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);background:var(--ds-base);padding:9px 10px;text-align:left}
+.tile b{display:block;font-size:18px;font-weight:600}
+.tile span{font-size:11px;color:var(--ds-fg2);line-height:1.3;display:block}
+.acc{border-bottom:1px solid var(--ds-border)}
+.acc-h{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:11px 0;text-align:left}
+.acc-h b{flex:1;font-size:14px;font-weight:600}
+.acc-h .cnt{font-size:12px;color:var(--ds-fg2)}
+.chev{width:7px;height:7px;border-right:1.5px solid var(--ds-fg3);border-bottom:1.5px solid var(--ds-fg3);transform:rotate(45deg);margin-left:2px}
+.acc-h[aria-expanded="true"] .chev{transform:rotate(-135deg)}
+.acc-b{padding:0 0 12px}
+.howit{font-size:12px;color:var(--ds-fg2);background:var(--ds-1);border-radius:var(--ds-rd);padding:8px 10px;margin-bottom:8px}
+.pol{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:9px 11px;margin-bottom:6px}
+.pol b{font-size:13px;font-weight:600}
+.pol.new{border-color:var(--ds-success)}
+.pm{font-size:12px;color:var(--ds-fg2)}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--ds-border-strong);border-radius:var(--ds-rd-full);overflow:hidden;flex:none}
+.stepper button{border:0;background:none;width:26px;height:26px;color:var(--ds-fg2)}
+.stepper button:hover{background:var(--ds-2)}
+.stepper b{font-size:13px;min-width:44px;text-align:center}
+.tg{width:36px;height:20px;border-radius:10px;border:0;background:var(--ds-3);position:relative;flex:none}
+.tg span{position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+.tg.on{background:var(--ds-accent)} .tg.on span{left:18px}
+.nt{display:flex;gap:8px;padding:6px 0;font-size:13px;border-top:1px solid var(--ds-border)} .nt:first-child{border-top:0} .nt .mk{margin-top:5px}
+.li{display:flex;justify-content:space-between;gap:8px;width:100%;background:none;border:0;padding:6px 0;font-size:13px;text-align:left}
+.li:hover{color:var(--ds-accent)}
+/* Claim view */
+.claim3{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:12px;height:100%}
+.panel{background:var(--ds-base);border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.p-h{padding:12px 16px;border-bottom:1px solid var(--ds-border)} .p-h b{font-weight:500;font-size:15px}
+.p-b{overflow:auto;padding:12px 16px 16px;flex:1}
+.sec{font-size:13px;font-weight:600;margin:4px 0 8px}
+.agents{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:6px 10px;margin-bottom:16px}
+.agrow{display:grid;grid-template-columns:14px 1fr;column-gap:8px;align-items:center;padding:5px 0;font-size:13px;font-weight:500}
+.agrow .faint{grid-column:2;font-weight:400}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.pk{font-size:12px;color:var(--ds-fg2);margin-bottom:3px}
+.chipv{display:inline-flex;font-size:13px;font-weight:500;padding:3px 9px;border-radius:var(--ds-rd);background:var(--ds-2)}
+.chipv.need{background:var(--ds-warning-bg);color:var(--ds-warning)} .chipv.run{background:var(--ds-accent-50);color:var(--ds-accent)} .chipv.ok{background:var(--ds-success-bg);color:var(--ds-success)} .chipv.stage{background:var(--ds-violet-bg);color:var(--ds-violet)} .chipv.person{background:var(--ds-success-bg);color:var(--ds-success)}
+.srcb{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:7px 0;text-align:left;font-size:13px}
+.srcb:hover{color:var(--ds-accent)}
+.doc h3{margin:10px 0 2px;font-size:15px} .doc p{margin:0 0 8px} .doc .hl{background:var(--ds-accent-25);box-shadow:inset 3px 0 0 var(--ds-accent);padding:6px 10px;border-radius:4px}
+.convo{display:flex;flex-direction:column;min-height:0;background:var(--ds-base);border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);overflow:hidden}
+.thread{flex:1;overflow:auto;padding:18px 18px 6px}
+.inner{max-width:760px;margin:0 auto}
+.msg{display:flex;gap:12px;margin-bottom:16px}
+.msg .b{flex:1;min-width:0} .msg .who{font-size:12px;font-weight:600;margin-bottom:4px} .msg p{margin:0 0 10px}
+.msg.user{justify-content:flex-end} .msg.user .b{flex:none;max-width:75%;text-align:right}
+.bubble{display:inline-block;text-align:left;background:var(--ds-accent-50);padding:9px 13px;border-radius:14px}
+.evt{display:flex;align-items:center;gap:8px;color:var(--ds-fg2);font-size:13px;margin:-6px 0 14px 40px}
+.evt::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ds-border-strong);flex:none}
+.card{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:13px 15px;background:var(--ds-base)}
+.sum-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px} .sum-h b{font-size:15px} .sum p{margin:0}
+.work{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:10px 14px;background:var(--ds-1);margin-bottom:10px;max-width:520px}
+.ws{display:flex;gap:10px;align-items:flex-start;padding:3px 0;font-size:13px;color:var(--ds-fg3)}
+.ws.done,.ws.active{color:var(--ds-fg1)}
+.wc{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--ds-border-strong);margin-top:3px;flex:none;display:grid;place-items:center}
+.ws.done .wc{background:var(--ds-success);border-color:var(--ds-success)}
+.ws.done .wc::after{content:"";width:5px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(0,-1px)}
+.ws.active .wc{border-color:var(--ds-accent);border-right-color:transparent;animation:spin .8s linear infinite}
+.wd{display:none;font-size:12px;color:var(--ds-fg2)} .ws.done .wd{display:block}
+.pos3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pos{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:11px 12px}
+.pos.site{border-top:3px solid var(--ds-accent)} .pos.patient{border-top:3px solid var(--ds-teal)} .pos.payer{border-top:3px solid var(--ds-violet)}
+.ph{display:flex;align-items:center;gap:7px;font-weight:600;font-size:12px;margin-bottom:5px}
+.pos p{margin:0;font-size:13px}
+.ev{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--ds-rd);border:1px solid var(--ds-border);background:var(--ds-1);margin:6px 6px 0 0}
+.ev:hover{border-color:var(--ds-accent);color:var(--ds-accent)}
+.indis{border:1px solid var(--ds-warning);background:var(--ds-warning-bg);border-radius:var(--ds-rd-l);padding:10px 14px;margin-bottom:12px}
+.indis .k{font-size:11px;font-weight:600;color:var(--ds-warning)} .indis .v{font-size:15px;font-weight:600}
+.oc{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);overflow:hidden;font-size:13px}
+.oc th{background:var(--ds-2);font-weight:500;text-align:left;padding:8px 10px;font-size:12px}
+.oc td{padding:8px 10px;border-top:1px solid var(--ds-border);vertical-align:top;white-space:nowrap}
+.oc td:first-child{white-space:normal;width:44%}
+.oc tr.sel td{background:var(--ds-accent-25)}
+.oc tr.dim td{opacity:.45}
+.ocb{display:grid;grid-template-columns:auto 1fr;gap:10px;background:none;border:0;padding:0;text-align:left;width:100%}
+.ocb:disabled{cursor:default}
+.ocb .r{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--ds-border-strong);margin-top:2px}
+.oc tr.sel .r{border:5px solid var(--ds-accent)}
+.ocb b{font-weight:600}
+.rec{font-size:11px;font-weight:600;color:var(--ds-success);margin-left:6px}
+.lk{display:block;font-size:12px;color:var(--ds-fg2)}
+.view{display:flex;gap:10px;align-items:flex-start;margin:12px 0 0!important;font-size:13px;background:var(--ds-accent-25);border-radius:var(--ds-rd);padding:9px 12px}
+.view .av{width:20px;height:20px}
+.payer-r{border-top:3px solid var(--ds-violet)} .pat-r{border-top:3px solid var(--ds-teal)}
+.ask b{font-size:14px}
+.tl{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);overflow:hidden}
+.tl-h,.tl-r{display:grid;grid-template-columns:repeat(3,1fr)}
+.tl-h{background:var(--ds-2);font-size:12px;font-weight:600}
+.tl-h span{display:flex;align-items:center;gap:6px;padding:8px 10px}
+.tl-c{padding:8px 10px;min-height:16px}
+.stmt{border:1px solid var(--ds-border);border-radius:var(--ds-rd);padding:8px 10px;font-size:13px}
+.stmt.site{border-top:2px solid var(--ds-accent)} .stmt.patient{border-top:2px solid var(--ds-teal)} .stmt.payer{border-top:2px solid var(--ds-violet)}
+.agree{display:flex;align-items:center;gap:6px;margin:6px 10px 10px;padding:9px 12px;border-radius:var(--ds-rd);background:var(--ds-success-bg);color:var(--ds-success);font-weight:500;font-size:13px}
+.composer{border-top:1px solid var(--ds-border);padding:10px 16px 12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chip{font-size:12px;font-weight:500;padding:4px 10px;border-radius:var(--ds-rd-full);border:0;background:var(--ds-accent-50);color:var(--ds-accent)}
+.inrow{display:flex;gap:8px;border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:5px 5px 5px 12px;background:var(--ds-accent-25)}
+.inrow input{flex:1;border:0;background:none;outline:none;min-width:0}
+.send{width:30px;height:30px;border-radius:50%;border:0;background:var(--ds-accent);color:#fff;display:grid;place-items:center}
+.helper{font-size:12px;color:var(--ds-fg3);margin-top:6px}
+.proto{position:fixed;left:calc(var(--ds-side) + 16px);bottom:16px;width:250px;background:var(--ds-base);border:1px solid var(--ds-border-strong);border-radius:var(--ds-rd-l);padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:40;display:none}
+.proto.show{display:block} .proto button{display:block;width:100%;text-align:left;background:none;border:0;padding:5px 6px;border-radius:6px;font-size:13px} .proto button:hover{background:var(--ds-2)}
+
+.watch{display:flex;align-items:center;gap:10px;border:1px solid var(--ds-border);background:var(--ds-accent-25);border-radius:var(--ds-rd-l);padding:10px 14px;margin-bottom:16px;font-size:13px}
+.watch .av{width:22px;height:22px}
+.watch.done{background:var(--ds-success-bg);border-color:transparent}
+.watch.done .btn{margin-left:auto}
+.xm{display:flex;gap:10px;margin-bottom:12px;max-width:88%}
+.xm.patient{margin-left:6%} .xm.payer{margin-left:12%}
+.xm.you{margin-left:0}
+.xav{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center}
+.xav.site{background:var(--ds-accent-25) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='60%25'%3E%3Cstop offset='0' stop-color='%231132ee' stop-opacity='.95'/%3E%3Cstop offset='1' stop-color='%237084f5' stop-opacity='.25'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='20' cy='11.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='20' cy='28.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='11.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3Cellipse cx='28.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3C/svg%3E") center/70% no-repeat}
+.xav.patient{background:var(--ds-teal-bg)} .xav.payer{background:var(--ds-violet-bg)}
+.xb{flex:1;min-width:0;border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:9px 12px;background:var(--ds-base)}
+.xm.site .xb{border-left:3px solid var(--ds-accent)} .xm.patient .xb{border-left:3px solid var(--ds-teal)} .xm.payer .xb{border-left:3px solid var(--ds-violet)}
+.xm.you .xb{background:var(--ds-accent-25)}
+.xw{font-size:12px;margin-bottom:3px} .xw b{font-weight:600}
+.xt{font-size:13px}
+.typing .xb{width:auto;flex:none}
+.dots{display:flex;gap:4px;padding:4px 0}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--ds-fg3);animation:blink 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s} .dots i:nth-child(3){animation-delay:.4s}
+.agreed{display:flex;align-items:center;gap:6px;justify-content:center;margin:6px 0 14px;padding:9px 12px;border-radius:var(--ds-rd);background:var(--ds-success-bg);color:var(--ds-success);font-weight:500;font-size:13px}
+.agreed span{margin-left:4px}
+
+.lt{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:12px 14px;margin-bottom:16px;position:sticky;top:-18px;background:var(--ds-base);z-index:2}
+.lt-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.lt-h b{font-size:15px}
+.lt-s{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.lt-s li{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ds-fg3);padding-top:8px;border-top:3px solid var(--ds-2)}
+.lt-s li.cur{color:var(--ds-accent);border-top-color:var(--ds-accent);font-weight:500}
+.lt-s li.done{color:var(--ds-fg2);border-top-color:var(--ds-success)}
+.lt-n{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:10px;font-weight:600;flex:none}
+.lt-s li.done .lt-n{background:var(--ds-success);border-color:var(--ds-success);position:relative}
+.lt-s li.done .lt-n::after,.lsec.done .lsec-n::after{content:"";width:6px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(0,-1px)}
+.lsec{margin-bottom:16px}
+.lsec-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.lsec-h b{font-size:14px}
+.lsec-n{width:20px;height:20px;border-radius:50%;background:var(--ds-accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600;flex:none}
+.lsec.done .lsec-n{background:var(--ds-success)}
+.lsec-who{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ds-fg2);margin-left:auto}
+.lsec-who .amp{color:var(--ds-fg3);margin:0 2px}
+.ll-list{list-style:none;margin:0;padding:0 0 0 10px;border-left:2px solid var(--ds-border);margin-left:9px}
+.ll{display:grid;grid-template-columns:170px 1fr;gap:10px;padding:7px 0 7px 14px;font-size:13px}
+.ll-w{display:flex;align-items:center;gap:7px;color:var(--ds-fg2);white-space:nowrap}
+.ll-w b{font-weight:500;color:var(--ds-fg1)}
+.ll-ev .ev{margin:2px 4px 0 0;font-size:11px;padding:1px 7px}
+.lout{border:1px solid var(--ds-success);border-radius:var(--ds-rd-l);overflow:hidden;margin-bottom:12px}
+.lout-h{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--ds-success-bg);color:var(--ds-success)}
+.lout-h b{margin-left:4px;font-weight:600}
+.lout-g{display:grid;grid-template-columns:repeat(3,1fr)}
+.lout-g div{padding:10px 14px;border-left:1px solid var(--ds-border)} .lout-g div:first-child{border-left:0}
+.lout-g span{display:block;font-size:12px;color:var(--ds-fg2)} .lout-g b{font-size:16px;font-weight:600}
+.lout-f{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--ds-border)}
+@media (max-width:1100px){ .ll{grid-template-columns:1fr;gap:2px} }
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}} @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.reveal{animation:rise .3s ease both}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:1280px){ .claim3{grid-template-columns:260px minmax(0,1fr)} .claim3 .today{grid-column:1 / -1} .station{grid-template-columns:minmax(0,1fr) 300px} .pos3{grid-template-columns:1fr} }
+@media (max-width:900px){ body{padding-left:0} .ds-side{display:none} .station,.claim3{grid-template-columns:1fr;height:auto} .main{height:auto} }
+</style></head><body>
+<nav class="ds-side" aria-label="Main navigation"><div class="ds-logo"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M9 1.5h2v6.2l4.4-4.4 1.4 1.4L12.4 9H18.5v2h-6.1l4.4 4.4-1.4 1.4-4.4-4.4v6.1H9v-6.1l-4.4 4.4-1.4-1.4L7.6 11H1.5V9h6.1L3.2 4.7l1.4-1.4L9 7.7z"/></svg>Air</div><div class="ds-nav"><a><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8.5 10 3l7 5.5V17H3z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Home</a><a><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 8h14M7 2.5v3M13 2.5v3" stroke="currentColor" stroke-width="1.6"/></svg>Visits</a><a><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m7 10 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Tasks</a>
+        <div class="ds-group"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Revenue Cycle</div>
+        <div class="ds-sub"><a><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 16c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M14 5a3 3 0 0 1 0 5.5M16 12c1 .8 1.6 2 1.8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Encounters</a><a class="on"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5h7l3 3V17.5H5z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 9h5M8 12h5" stroke="currentColor" stroke-width="1.6"/></svg>Claims</a><a><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.5 2"/><path d="m7.5 7.5 5 5m0-5-5 5" stroke="currentColor" stroke-width="1.6"/></svg>Denials</a><a><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="5" width="15" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Remittances</a></div>
+        <div class="ds-group"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Reporting</div>
+        <div class="ds-sub"><a><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M8 16V5M12 16v-6M16 16V7" stroke="currentColor" stroke-width="1.8"/></svg>Practice Pulse</a><a><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M8 16V5M12 16v-6M16 16V7" stroke="currentColor" stroke-width="1.8"/></svg>AI Report Builder</a></div></div><div class="ds-foot"><span class="ds-me">LO</span><span style="flex:1"></span><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" stroke="currentColor" stroke-width="1.6"/></svg></div></nav>
+<header class="top">
+  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+  <div class="search" aria-hidden="true">Global search <kbd>ctrl</kbd><kbd>K</kbd></div>
+  <button class="ai-btn" id="aiBtn" type="button"><span class="emb"></span>Athelas Agent</button>
+  <button class="ghost-btn" id="protoBtn" type="button" aria-expanded="false">Prototype controls</button>
+</header>
+<main class="main" id="main"></main>
+<div class="proto" id="proto" role="dialog" aria-label="Prototype controls">
+  <button data-jump="reset" type="button">Reset everything</button>
+  <button data-jump="d1" type="button">Open the payer dispute</button>
+  <button data-jump="d2" type="button">Open the patient dispute</button>
+  <button data-jump="d1won" type="button">Payer dispute won, rule offered</button>
+  <button data-jump="live" type="button">Watch the agents settle a claim</button>
+  <button data-jump="settled" type="button">How a claim was settled</button>
+</div>
+
+<script>/* ---------- Story data (fictional) ---------- */
+const SOURCES = {
+  c61:{t:"Contract, section 6.1", m:"Rock Valley and Iowa Blue Shield", who:"payer", b:[["6.1 Visit limits."],["Up to 12 PT visits per plan year are covered. Visits beyond 12 need a progress note that shows measurable progress toward goals.",1]]},
+  pn:{t:"Progress note, Nov 2", m:"Jordan Hale. Signed by Dana Lee, PT, DPT", who:"site", b:[["Re-assessment after 12 visits."],["Single leg stance improved from 8 to 19 seconds.",1],["Gait speed improved from 0.62 to 0.81 meters per second.",1],["Updated goal: independent community walking within 6 weeks."]]},
+  el1:{t:"Eligibility record", m:"Iowa Blue Shield, checked Nov 11", who:"patient", b:[["Coverage active. Visit 14 of plan year.",1],["Patient responsibility if denied: $412.00."]]},
+  est:{t:"Check-in estimate, Nov 4", m:"Grace Holt, Wellmark", who:"site", b:[["Estimated patient cost: $25 copay.",1],["Estimate used last year's plan, which had no deductible."]]},
+  eob:{t:"Wellmark payment", m:"Paid Nov 10", who:"payer", b:[["Allowed $398.00. Paid $186.00.",1],["Patient responsibility: $212.00, toward the new deductible.",1]]},
+  gconsent:{t:"Grace's message, via the patient app", m:"Shared with consent, Nov 11", who:"patient", b:[["\u201cI was told at the front desk my visit would be $25. I budgeted for that.\u201d",1]]},
+  note691:{t:"Clinical note, Nov 10", m:"Alex Rivera", who:"site", b:[["Plan of care: habilitative.",1]]},
+  elig691:{t:"Eligibility record", m:"Iowa Blue Shield, Nov 10", who:"patient", b:[["Coverage active. Consent to share visit details on file.",1]]},
+  note911:{t:"Visit note, Nov 12", m:"Noor Haddad. Signed by Dana Lee, PT, DPT", who:"site", b:[["Plan of care: habilitative. Build balance skills not previously attained.",1],["Initial evaluation completed today."]]},
+  draft911:{t:"Claim draft", m:"Claim 22316911", who:"site", b:[["97110, 97112, 97140, each with GP and 96.",1],["97161 evaluation, with GP.",1],["Charges: $386.00."]]},
+  elig911:{t:"Eligibility record", m:"Iowa Blue Shield, checked just now", who:"patient", b:[["Coverage active. Member ID IBS10044.",1],["Copay $25 per visit."]]},
+  consent911:{t:"Noor's consent", m:"Signed in the patient app", who:"patient", b:[["Noor agrees to share visit details with Iowa Blue Shield for billing.",1],["Her full record is not shared."]]},
+  receipt911:{t:"Check-in receipt", m:"Nov 12", who:"patient", b:[["Copay of $25.00 paid at check-in.",1]]},
+  c42:{t:"Contract, section 4.2", m:"Rock Valley and Iowa Blue Shield", who:"payer", b:[["Habilitative PT is billed with modifier 96.",1]]}
+};
+const DISPUTES = {
+  d1:{id:"22316745", patient:"Jordan Hale", payer:"Iowa Blue Shield", amt:412, type:"Payer disagrees", against:"payer", open:"9 hours",
+    q:"Does the Nov 2 progress note show measurable progress?",
+    summary:"The Iowa Blue Shield agent and I couldn't agree on visit 14. Coverage and consent are settled. The only open question is whether the progress note shows measurable progress.",
+    pos:[{w:"payer", t:"Visit 14 is past the 12 covered visits, and the payer's agent doesn't see measurable progress in the note.", ev:["c61"]},
+         {w:"site", t:"The Nov 2 progress note records two measured improvements, signed by the therapist.", ev:["pn"]},
+         {w:"patient", t:"Coverage is active and consent is on file. Jordan would owe $412.00 if the payer doesn't pay.", ev:["el1"]}],
+    view:"I think the note meets the criteria. In 37 of 40 similar disputes across Athelas practices, Iowa Blue Shield accepted a note with two measured improvements.",
+    choices:[{v:"contest", t:"Contest with the progress note", practice:"$0", patient:"$0", payer:"Pays $412", like:"Likely accepted, 37 of 40 similar cases", rec:true},
+             {v:"bill", t:"Accept, and bill Jordan", practice:"$0", patient:"Owes $412", payer:"Pays $0", like:"Jordan gets a surprise bill"},
+             {v:"writeoff", t:"Accept, and write it off", practice:"Loses $412", patient:"$0", payer:"Pays $0", like:"Nothing else needed"},
+             {v:"escalate", t:"Ask a person at Iowa Blue Shield", practice:"Waits", patient:"Waits", payer:"Decides", like:"Usually within 7 days"}],
+    rule:"When a visit-limit denial has a progress note with measured improvement, contest it with the note"},
+  d2:{id:"22316781", patient:"Grace Holt", payer:"Wellmark", amt:398, type:"Patient disagrees", against:"patient", open:"3 hours",
+    q:"Who covers the cost of our wrong estimate?",
+    summary:"Wellmark paid correctly, but our check-in estimate told Grace she'd pay $25. It missed her new deductible, so she'd owe $212. Her patient agent is asking us to honor the estimate.",
+    pos:[{w:"patient", t:"Grace was quoted $25 at check-in and budgeted for it. Her agent asks Rock Valley to honor the estimate.", ev:["est","gconsent"]},
+         {w:"site", t:"The $212 is correct under her new plan. Our estimate used last year's plan, so the mistake was ours.", ev:["est"]},
+         {w:"payer", t:"Wellmark paid $186 and applied $212 to her deductible. Nothing is in dispute with Wellmark.", ev:["eob"]}],
+    view:"The estimate error was ours. Practices like yours usually honor estimates when the difference is small, to keep the patient's trust. This one is $187.",
+    choices:[{v:"honor", t:"Honor the estimate", practice:"Writes off $187", patient:"Pays $25", payer:"No change", like:"Grace is told she's all set", rec:true},
+             {v:"plan", t:"Bill the rest, with a payment plan", practice:"$0", patient:"$187 over 3 months", payer:"No change", like:"Grace gets a plan offer"},
+             {v:"full", t:"Bill the full amount", practice:"$0", patient:"Owes $187 more", payer:"No change", like:"Grace's agent will likely push back"}],
+    rule:"When our estimate was wrong by less than $200, honor it"}
+};
+const LIVE_STEPS = [
+  {n:1, t:"Confirm coverage and consent", who:["site","patient"]},
+  {n:2, t:"Review the claim", who:["site","payer"]},
+  {n:3, t:"Agree on who pays what", who:["payer","patient"]}
+];
+const LIVE_SCRIPT = [
+  {s:1, f:"site", t:"Can you confirm Noor's coverage, and her consent to share visit details with Iowa Blue Shield?"},
+  {s:1, f:"patient", t:"Coverage is active. She consented to share visit details for billing, not her full record.", ev:["elig911","consent911"]},
+  {s:2, f:"site", t:"Here's the claim: 97110, 97112, and 97140 with modifier 96, plus the 97161 evaluation. The plan of care is habilitative.", ev:["draft911","note911"]},
+  {s:2, f:"payer", t:"Lines 1 to 3 meet section 4.2. Is 97161 the initial evaluation?", ev:["c42"]},
+  {s:2, f:"site", t:"Yes, so it's billed without 96.", ev:["note911"]},
+  {s:3, f:"payer", t:"Agreed. Allowed $386.00. The plan pays $361.00, and Noor's share is the $25 copay."},
+  {s:3, f:"patient", t:"Agreed. Noor paid the $25 at check-in, so she owes nothing more.", ev:["receipt911"]},
+  {k:"outcome"}
+];
+const LIVE0 = [
+  {id:"22316911", p:"Noor Haddad", pay:"Iowa Blue Shield", amt:386},
+  {id:"22316914", p:"Eli Brooks", pay:"Medica", amt:318},
+  {id:"22316917", p:"Ivy Chen", pay:"Wellmark", amt:264},
+  {id:"22316920", p:"Omar Reyes", pay:"Iowa Blue Shield", amt:412},
+  {id:"22316923", p:"Hana Ito", pay:"Medicare", amt:221}
+];
+const LANE_TEXT = {
+  site:["Drafting from the note","Claim drafted","Claim drafted"],
+  patient:["Waiting","Confirming coverage","Coverage confirmed"],
+  payer:["Waiting","Checking rules","Rules met"]
+};
+const SETTLED = [["22316691","Alex Rivera","Iowa Blue Shield",386,"4 min","Paid"],["22316693","Maya Chen","Wellmark",412,"3 min","Paid"],["22316698","Luis Ortega","Medicare",221.4,"2 min","Paid"],["22316701","Grace Holt","Iowa Blue Shield",368,"5 min","Sent"]];
+const STEPS = {d1:[["Reading the dispute","The Iowa Blue Shield agent disagrees on visit 14"],["Gathering each agent's evidence","3 positions, 3 sources"],["Finding similar disputes","40 across Athelas practices"]],
+  d2:[["Reading the dispute","Grace's patient agent disagrees with her balance"],["Checking what went wrong","The estimate used last year's plan"],["Finding how practices like yours handle it","Most honor small estimate errors"]],
+  pay:[["Sending the progress note","Shared with the Iowa Blue Shield agent"],["Iowa Blue Shield agent is reviewing","Checking the note against section 6.1"]]};
+
+/* ---------- State ---------- */
+const fresh = () => ({
+  view:"home", claim:null, left:null, working:null, seen:{}, open:{judge:true, live:true, settled:false}, panel:null,
+  live: LIVE0.map((r,i)=>({...r, stage: i%3, gone:false})), settledCount:63, paidCount:41,
+  d:{d1:{choice:null, picked:null, stage:"open", ruleAsked:false, rule:null}, d2:{choice:null, picked:null, stage:"open", ruleAsked:false, rule:null}},
+  pol:{adjust:25, cap:300, contest:true, estimate:null},
+  network:[], chat:{}, livePos:0, liveDone:false
+});
+let S = fresh();
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "$" + n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+const NAMES = {site:"Athelas Agent", patient:"Patient agent", payer:"Payer agent"};
+const fullName = (w, d) => w==="site" ? "Athelas Agent (Rock Valley)" : w==="patient" ? `Patient agent (for ${d.patient})` : `${d.payer} agent`;
+const mark = w => `<span class="mk ${w}" aria-hidden="true"></span>`;
+const ev = id => `<button class="ev" data-src="${id}" type="button">${esc(SOURCES[id].t)}</button>`;
+const AV = `<span class="av" aria-hidden="true"></span>`;
+const mA = h => `<div class="msg reveal">${AV}<div class="b"><div class="who">Athelas Agent</div>${h}</div></div>`;
+const mU = t => `<div class="msg user reveal"><div class="b"><div class="who">Lorenza</div><div class="bubble">${esc(t)}</div></div></div>`;
+const mE = t => `<div class="evt">${t}</div>`;
+const openDisputes = () => ["d1","d2"].filter(k=>!["won","billed","written","escalated","honored","planned","fullbill"].includes(S.d[k].stage));
+function work(key, live){
+  return `<div class="work" ${live?'id="wb"':''}>${STEPS[key].map(([a,b])=>`<div class="ws ${live?"":"done"}"><span class="wc"></span><span><span>${a}</span><span class="wd">${b}</span></span></div>`).join("")}</div>`;
+}
+
+/* ---------- Top ---------- */
+function renderTop(){
+  const c = $("#crumbs");
+  if (S.view==="home") c.innerHTML = `<span>Claims</span><span>/</span><b>Settlement</b>`;
+  else c.innerHTML = `<button data-go="home" type="button">Settlement</button><span>/</span><b>${S.claim}</b>`;
+  $("#aiBtn").classList.toggle("working", !!S.working);
+}
+
+/* ---------- Home: settlement ---------- */
+function laneState(stage, lane){
+  const order = {site:0, patient:1, payer:2}[lane];
+  if (stage > order) return ["ok", LANE_TEXT[lane][2]];
+  if (stage === order) return ["run", LANE_TEXT[lane][1]];
+  return ["wait", LANE_TEXT[lane][0]];
+}
+function homeHTML(){
+  const open = openDisputes();
+  const judge = open.map(k=>{ const d = DISPUTES[k];
+    return `<tr class="row" data-open-d="${k}" tabindex="0"><td><span class="cb"></span></td><td class="num">${d.id}</td><td><span class="tag need">${d.type}</span></td>
+      <td class="q"><span class="vs">${mark(d.against)}<span class="x"></span>${mark("site")}</span> ${esc(d.q)}</td><td class="plink">${d.patient}</td><td>${d.payer}</td><td class="r num">${money(d.amt)}</td></tr>`; }).join("");
+  const live = S.live.filter(r=>!r.gone).map(r=>{
+    const done = r.stage>=3;
+    return `<tr class="row ${done?"settling-done":""}" data-live="${r.id}" tabindex="0"><td><span class="cb"></span></td><td class="num">${r.id}</td><td>${done?`<span class="tag ok">Agreed and sent</span>`:`<span class="tag run">Settling</span>`}</td>
+      <td colspan="1"><div class="lanes">${["site","patient","payer"].map(l=>{ const [st,tx] = laneState(r.stage,l); return `<span class="ln ${st}">${mark(l)}<span>${tx}</span></span>`; }).join("")}</div></td>
+      <td class="plink">${r.p}</td><td>${r.pay}</td><td class="r num">${money(r.amt)}</td></tr>`; }).join("");
+  const settled = SETTLED.map(([id,p,pay,amt,t,st])=>`<tr class="row" data-settled="${id}" tabindex="0"><td><span class="cb"></span></td><td class="num">${id}</td><td><span class="tag ${st==="Paid"?"ok":"run"}">${st}</span></td><td class="muted">All three agreed in ${t}</td><td class="plink">${p}</td><td>${pay}</td><td class="r num">${money(amt)}</td></tr>`).join("");
+  const grp = (k, chip, sub, n, body) => `<tr class="grp ${S.open[k]?"open":""}"><td colspan="7"><button class="gt" data-grp="${k}" type="button" aria-expanded="${!!S.open[k]}"><span class="caret"></span>${chip}<span class="gchip muted">${sub}</span>${n?`<span class="gchip">${n}</span>`:""}</button></td></tr>${S.open[k]?body:""}`;
+  return `<section class="wl"><div class="wl-tabs"><button type="button">All Claims</button><button type="button">My Claims (4)</button><button type="button" aria-selected="true">Settlement</button><span class="sp"></span></div>
+    <div class="wl-bar"><span class="lead">${AV}<span><b>${S.settledCount} claims settled before they were sent today.</b> ${open.length?`${open.length} need${open.length===1?"s":""} your judgment.`:"Nothing needs you."}</span></span></div>
+    <div class="wl-scroll"><table class="wt"><thead><tr><th><span class="cb"></span></th><th>Claim ID</th><th>Status</th><th>Agents</th><th>Patient</th><th>Insurance</th><th class="r">Amount</th></tr></thead><tbody>
+      ${grp("judge", `<span class="gchip needc">Needs your judgment ${open.length?`<span class="cnt">${open.length}</span>`:""}</span>`, "The agents couldn't agree", "", judge || `<tr><td></td><td colspan="6" class="muted">Nothing to judge right now.</td></tr>`)}
+      ${grp("live", `<span class="gchip runc"><span class="spin"></span>Settling now</span>`, "Open any to watch the agents settle it", "", live || `<tr><td></td><td colspan="6" class="muted">All caught up.</td></tr>`)}
+      ${grp("settled", `<span class="gchip">Settled today</span>`, "Open any to see how the agents agreed", `${S.settledCount}`, settled + `<tr><td></td><td colspan="6" class="muted small">And ${S.settledCount-SETTLED.length} more.</td></tr>`)}
+    </tbody></table></div></section>`;
+}
+
+/* ---------- Today panel ---------- */
+function todayHTML(){
+  const open = openDisputes();
+  const P = S.panel;
+  const sec = (k, t, cnt, body) => `<div class="acc"><button class="acc-h" data-panel="${k}" type="button" aria-expanded="${P===k}"><b>${t}</b><span class="cnt">${cnt}</span><span class="chev"></span></button>${P===k?`<div class="acc-b">${body}</div>`:""}</div>`;
+  const todos = open.map(k=>{ const d = DISPUTES[k]; return `<button class="todo" data-open-d="${k}" type="button"><span class="td ${d.against}"></span><span class="tt"><b>${d.type} on ${d.patient}'s claim</b>${esc(d.q)}</span><span class="go">Judge</span></button>`; }).join("");
+  const step = (k, v, unit, label) => `<span class="stepper"><button data-pol="${k}:-" type="button" aria-label="Lower">&minus;</button><b class="num">${unit}${v}</b><button data-pol="${k}:+" type="button" aria-label="Raise">+</button></span>`;
+  const pols = `<div class="howit">These are the calls the agents can make without you. Anything outside them comes to you.</div>
+    <div class="pol"><div><b>Accept payer adjustments under</b><div class="pm">Small differences the payer's agent is right about</div></div>${step("adjust", S.pol.adjust, "$")}</div>
+    <div class="pol"><div><b>Never bill a patient more than</b><div class="pm">without asking you first</div></div>${step("cap", S.pol.cap, "$")}</div>
+    <div class="pol"><div><b>Contest when the evidence matches a past win</b><div class="pm">${S.pol.contest?"Contested 9 times this week, won 8":"Off. Every contest comes to you"}</div></div><button class="tg ${S.pol.contest?"on":""}" data-pol="contest:t" type="button" aria-pressed="${S.pol.contest}"><span></span></button></div>
+    ${S.d.d1.rule?`<div class="pol new"><div><b>${DISPUTES.d1.rule}</b><div class="pm">Added by you today, from ${DISPUTES.d1.id}</div></div><span class="tag ok">On</span></div>`:""}
+    ${S.d.d2.rule?`<div class="pol new"><div><b>${DISPUTES.d2.rule}</b><div class="pm">Added by you today, from ${DISPUTES.d2.id}</div></div><span class="tag ok">On</span></div>`:""}`;
+  const net = [...S.network, ["payer","Wellmark changed its PT modifier policy. Agents updated it across 14 practices.","Yesterday"],["patient","3 patients confirmed new coverage in the patient app before their visits.","Overnight"]];
+  return `<aside class="today"><div class="today-h">${AV}<div><b>Today</b><div class="muted small">From Athelas Agent</div></div></div><div class="today-b">
+    <p class="greet">Good morning, Lorenza.</p>
+    <div class="lbl">For you</div>${todos || `<div class="muted small" style="margin-bottom:10px">Nothing needs your judgment right now.</div>`}
+    <div class="tiles"><button class="tile" data-panel="settled" type="button"><b class="num">${S.settledCount}</b><span>Settled before sending</span></button><button class="tile" data-panel="settled" type="button"><b class="num">${S.paidCount}</b><span>Paid</span></button><button class="tile" type="button"><b class="num">4 min</b><span>Average to agree</span></button></div>
+    ${sec("rules","What the agents can agree to without you", `${3 + (S.d.d1.rule?1:0) + (S.d.d2.rule?1:0)} rules`, pols)}
+    ${sec("network","Learned across the network", `${net.length}`, net.map(([w,t,when])=>`<div class="nt">${mark(w)}<div><div>${t}</div><div class="faint small">${when}</div></div></div>`).join(""))}
+    ${sec("settled","Settled today", `${S.settledCount}`, SETTLED.map(([id,p,pay,amt,t,st])=>`<button class="li" data-settled="${id}" type="button"><span class="num">${id} ${p}</span><span class="tag ${st==="Paid"?"ok":"run"}">${st}</span></button>`).join(""))}
+  </div></aside>`;
+}
+
+/* ---------- Left panel (claim properties and sources) ---------- */
+function leftHTML(){
+  if (S.left){ const s = SOURCES[S.left];
+    return `<aside class="panel"><div class="p-h"><b>Claim ${S.claim}</b></div><div class="p-b doc"><button class="link" data-left="" type="button">Back to properties</button>
+      <h3>${esc(s.t)}</h3><div class="faint small" style="margin-bottom:10px">${esc(s.m)}. Shared by ${NAMES[s.who]}</div>${s.b.map(([t,h])=>`<p class="${h?"hl":""}">${esc(t)}</p>`).join("")}</div></aside>`; }
+  let f, src;
+  if (S.view==="live"){ f = {status: S.liveDone ? ["ok","Sent"] : ["run","Settling"], stage: S.liveDone ? "Sent to Iowa Blue Shield" : "Agents settling", patient:"Noor Haddad", payer:"Iowa Blue Shield", dos:"Nov 12", amt:386}; src = ["note911","draft911","elig911","consent911","c42","receipt911"]; }
+  else if (S.view==="settled"){ f = {status:["ok","Paid, $386.00"], stage:"Settled", patient:"Alex Rivera", payer:"Iowa Blue Shield", dos:"Nov 10", amt:386}; src = ["note691","elig691","c42"]; }
+  else { const k = S.view, d = DISPUTES[k], st = S.d[k].stage;
+    const done = !openDisputes().includes(k);
+    f = {status: done ? ["ok","Resolved by you"] : ["need","Agents in dispute"], stage: done ? "Resolved" : "Your judgment", patient:d.patient, payer:d.payer, dos:"Nov 11", amt:d.amt};
+    src = k==="d1" ? ["c61","pn","el1"] : ["est","eob","gconsent"]; }
+  const item = (k,v) => `<div><div class="pk">${k}</div>${v}</div>`;
+  return `<aside class="panel"><div class="p-h"><b>Claim ${S.claim}</b></div><div class="p-b">
+    <div class="sec">Agents</div>
+    <div class="agents">${["site","patient","payer"].map(w=>`<div class="agrow">${mark(w)}<span>${w==="site"?"Athelas Agent":w==="patient"?"Patient agent":f.payer+" agent"}</span><span class="faint small">${w==="site"?"For Rock Valley":w==="patient"?"For "+f.patient:"For the payer"}</span></div>`).join("")}</div>
+    <div class="sec">Properties</div>
+    <div class="pgrid">${item("Status",`<span class="chipv ${f.status[0]}">${f.status[1]}</span>`)}${item("Stage",`<span class="chipv stage">${f.stage}</span>`)}${item("Assignee",`<span class="chipv person">Lorenza</span>`)}${item("Patient",`<span class="chipv">${f.patient}</span>`)}${item("Date of service",`<span class="chipv">${f.dos}</span>`)}${item("Charges",`<span class="chipv">${money(f.amt)}</span>`)}</div>
+    <div class="sec" style="margin-top:16px">Shared evidence</div>
+    ${src.map(id=>`<button class="srcb" data-left="${id}" type="button">${mark(SOURCES[id].who)}<span>${esc(SOURCES[id].t)}</span></button>`).join("")}
+  </div></aside>`;
+}
+
+/* ---------- Dispute conversation ---------- */
+function disputeHTML(k){
+  const d = DISPUTES[k], st = S.d[k];
+  if (!S.seen[k]) return mA(work(k, true));
+  const out = [];
+  out.push(mA(work(k,false) + `<div class="card sum"><div class="sum-h"><b>Summary</b><span class="tag ${openDisputes().includes(k)?"need":"ok"}">${openDisputes().includes(k)?d.type:"Resolved"}</span></div><p>${d.summary}</p></div>`));
+  out.push(mA(`<p>Here's where each agent stands. Every statement points to the evidence.</p><div class="pos3">${d.pos.map(p=>`<div class="pos ${p.w}"><div class="ph">${mark(p.w)}${fullName(p.w,d)}</div><p>${esc(p.t)}</p><div>${p.ev.map(ev).join("")}</div></div>`).join("")}</div>`));
+  const decided = st.choice !== null;
+  out.push(mA(`<div class="indis"><div class="k">IN DISPUTE</div><div class="v">${esc(d.q)}</div></div>
+    <p class="small muted" style="margin:0 0 8px">What each choice means:</p>
+    <table class="oc"><thead><tr><th></th><th>Rock Valley</th><th>${d.patient.split(" ")[0]}</th><th>${d.payer}</th></tr></thead><tbody>
+    ${d.choices.map(c=>`<tr class="${st.choice===c.v?"sel":""} ${decided&&st.choice!==c.v?"dim":""}"><td><button class="ocb" data-choose="${k}:${c.v}" type="button" ${decided?"disabled":""}><span class="r"></span><span><b>${c.t}</b>${c.rec?`<span class="rec">My recommendation</span>`:""}<span class="lk">${c.like}</span></span></button></td><td>${c.practice}</td><td>${c.patient}</td><td>${c.payer}</td></tr>`).join("")}
+    </tbody></table>
+    <p class="view">${AV}<span><b>My view:</b> ${esc(d.view)}</span></p>`));
+  if (decided){
+    const c = d.choices.find(x=>x.v===st.choice);
+    out.push(mU(c.t));
+    if (k==="d1"){
+      if (st.choice==="contest"){
+        out.push(mE("Progress note sent by Lorenza to the Iowa Blue Shield agent."));
+        if (st.stage==="reviewing") out.push(mA(work("pay", true)));
+        if (st.stage==="won"){
+          out.push(mA(work("pay", false)));
+          out.push(`<div class="msg reveal"><span class="av pay" aria-hidden="true">${mark("payer")}</span><div class="b"><div class="who">Iowa Blue Shield agent <span class="faint">shared through Athelas Agent</span></div><div class="card payer-r"><b>Criteria met. Approved, $412.00.</b><div class="muted small">The note shows measurable progress under section 6.1.</div><div>${ev("c61")}${ev("pn")}</div></div></div></div>`);
+          out.push(mE("Paid, $412.00. Jordan owes nothing more."));
+          out.push(ruleAsk(k));
+        }
+      }
+      if (st.choice==="bill"){ out.push(mA(`<p>Jordan's patient agent will get the $412 balance with the payer's reason attached. Since it's over your $${S.pol.cap} limit, I'll send it only after you confirm.</p><div class="btns"><button class="btn primary sm" data-final="${k}:billed" type="button">Send the bill to Jordan</button><button class="btn sm" data-undo="${k}" type="button">Change my choice</button></div>`)); if (st.stage==="billed") out.push(mE("Bill sent to Jordan's patient agent, with the payer's reason.")); }
+      if (st.choice==="writeoff"){ if (st.stage!=="written") st.stage = "written"; out.push(mE("Written off by Lorenza. $412.00.")); out.push(mA(`<p>Done. Jordan won't be billed.</p>${nextBtn()}`)); }
+      if (st.choice==="escalate"){ if (st.stage!=="escalated") st.stage = "escalated"; out.push(mE("Sent to a person at Iowa Blue Shield, with all three positions and the evidence.")); out.push(mA(`<p>Sent. Usually decided within 7 days. I'll bring you the answer.</p>${nextBtn()}`)); }
+    } else {
+      const map = {honor:"honored", plan:"planned", full:"fullbill"};
+      if (st.stage==="open") st.stage = map[st.choice];
+      const msg = {honor:"Grace's patient agent was told her visit is settled at $25. $187 written off by Lorenza.", plan:"Grace's patient agent was offered a 3-month plan for $187.", full:"A bill for $187 was sent to Grace's patient agent."}[st.choice];
+      out.push(mE(msg));
+      if (st.choice==="full") out.push(`<div class="msg reveal"><span class="av pat" aria-hidden="true">${mark("patient")}</span><div class="b"><div class="who">Patient agent (for Grace Holt) <span class="faint">shared through Athelas Agent</span></div><div class="card pat-r">Grace has asked for a payment plan instead. Want to offer one?<div class="btns" style="margin-top:8px"><button class="btn sm" data-final="d2:planned2" type="button">Offer a 3-month plan</button></div></div></div></div>`);
+      if (st.stage==="planned2") out.push(mE("Payment plan offered. Grace accepted."));
+      out.push(ruleAsk(k));
+    }
+  }
+  return out.join("");
+}
+function ruleAsk(k){
+  const d = DISPUTES[k], st = S.d[k];
+  if (k==="d2" && st.choice==="full") return mA(nextBtn());
+  if (st.rule) return mE(`New rule added by Lorenza: \u201c${d.rule}.\u201d`) + mA(`<p>Done. I'll apply it from now on, and you'll see it under what the agents can agree to without you.</p>${nextBtn()}`);
+  if (st.ruleAsked==="no") return mA(`<p>Okay. Disputes like this will keep coming to you.</p>${nextBtn()}`);
+  return mA(`<div class="card ask"><b>Should the agents do this without you next time?</b><p class="muted small" style="margin:6px 0 10px">\u201c${d.rule}.\u201d You can change or turn it off anytime.</p><div class="btns"><button class="btn primary sm" data-rule="${k}:yes" type="button">Yes, make it a rule</button><button class="btn sm" data-rule="${k}:no" type="button">Keep asking me</button></div></div>`);
+}
+function nextBtn(){ const o = openDisputes(); return `<div class="btns" style="margin-top:10px">${o.length?`<button class="btn primary sm" data-open-d="${o[0]}" type="button">Next dispute</button>`:""}<button class="btn sm" data-go="home" type="button">Back to settlement</button></div>`; }
+
+function settledHTML(){
+  const rows = [["site","Nov 10, 5:48 PM","Visit documented. Plan of care is habilitative.",["note691"]],["patient","5:51 PM","Coverage active. Consent to share visit details on file.",["elig691"]],["payer","5:52 PM","Habilitative PT is billed with modifier 96.",["c42"]],["site","5:53 PM","Claim drafted with modifier 96.",[]]];
+  return mA(`<div class="card sum"><div class="sum-h"><b>Settled before it was sent</b><span class="tag ok">Paid, $386.00</span></div><p>All three agents agreed in 4 minutes. Iowa Blue Shield paid the next day.</p></div>`)
+    + mA(`<p>Here's how they agreed.</p><div class="tl"><div class="tl-h"><span>${mark("site")}Athelas Agent</span><span>${mark("patient")}Patient agent</span><span>${mark("payer")}Iowa Blue Shield agent</span></div>
+      ${rows.map(([w,t,x,e])=>`<div class="tl-r">${["site","patient","payer"].map(l=>l===w?`<div class="tl-c has"><div class="stmt ${w}"><div class="faint small">${t}</div>${esc(x)}<div>${e.map(ev).join("")}</div></div></div>`:`<div class="tl-c"></div>`).join("")}</div>`).join("")}
+      <div class="agree">${mark("site")}${mark("patient")}${mark("payer")} All three agreed, then it was sent</div></div>`);
+}
+
+function liveHTML(){
+  const shown = LIVE_SCRIPT.slice(0, S.livePos);
+  const name = w => w==="site" ? "Athelas Agent" : w==="patient" ? "Patient agent" : "Iowa Blue Shield agent";
+  const next = LIVE_SCRIPT[S.livePos];
+  const cur = S.liveDone ? 4 : next && next.s ? next.s : 4;
+  const tracker = `<div class="lt">
+    <div class="lt-h"><div><b>Settling claim 22316911</b><div class="faint small">Noor Haddad. Four PT lines, $386.00</div></div>
+      ${S.liveDone ? `<span class="tag ok">Settled in 2 min 40 sec</span>` : `<span class="tag run"><span class="spin"></span>Live</span>`}</div>
+    <ol class="lt-s">${LIVE_STEPS.map(st=>{ const state = st.n < cur ? "done" : st.n===cur ? "cur" : "todo";
+      return `<li class="${state}"><span class="lt-n">${state==="done"?"":st.n}</span><span>${st.t}</span></li>`; }).join("")}</ol></div>`;
+  const sections = LIVE_STEPS.filter(st=>st.n <= cur && st.n<=3).map(st=>{
+    const lines = shown.filter(m=>m.s===st.n).map(m=>`<li class="ll reveal"><span class="ll-w">${mark(m.f)}<b>${name(m.f)}</b></span><span class="ll-t">${esc(m.t)}${m.ev?` <span class="ll-ev">${m.ev.map(ev).join("")}</span>`:""}</span></li>`).join("");
+    const typing = !S.liveDone && next && next.s===st.n ? `<li class="ll"><span class="ll-w">${mark(next.f)}<b>${name(next.f)}</b></span><span class="ll-t"><span class="dots"><i></i><i></i><i></i></span></span></li>` : "";
+    const done = st.n < cur;
+    return `<section class="lsec ${done?"done":""}"><div class="lsec-h"><span class="lsec-n">${done?"":st.n}</span><b>${st.t}</b><span class="lsec-who">${st.who.map(w=>`${mark(w)}${name(w)}`).join('<span class="amp">and</span>')}</span></div><ul class="ll-list">${lines}${typing}</ul></section>`;
+  }).join("");
+  const outcome = S.liveDone ? `<div class="lout reveal"><div class="lout-h">${mark("site")}${mark("patient")}${mark("payer")}<b>All three agreed. Sent to Iowa Blue Shield.</b></div>
+    <div class="lout-g"><div><span>Plan pays</span><b class="num">$361.00</b></div><div><span>Noor owes</span><b class="num">$0.00</b></div><div><span>Payment expected</span><b>Tomorrow</b></div></div>
+    <div class="lout-f"><span class="muted small">Nothing needed you on this claim.</span><button class="btn sm" data-replay type="button">Watch again</button></div></div>` : "";
+  return tracker + sections + outcome;
+}
+function claimHTML(){
+  const chat = (S.chat[S.view]||[]).map(m=>m.u?mU(m.t):mA(m.t)).join("");
+  const body = S.view==="settled" ? settledHTML() : S.view==="live" ? liveHTML() : disputeHTML(S.view);
+  const chips = (S.view==="settled" || S.view==="live") ? ["What could each agent see?","Back to settlement"] : ["Why do they disagree?","What could each agent see?","What would you do?"];
+  return `<div class="claim3">${leftHTML()}<section class="convo"><div class="thread" id="thread"><div class="inner">${body}${chat}</div></div>
+    <div class="composer"><div class="inner"><div class="chips">${chips.map(c=>`<button class="chip" data-chip="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>
+    <form class="inrow" data-ask autocomplete="off"><input aria-label="Ask Athelas Agent" placeholder="Ask anything..."/><button class="send" type="submit" aria-label="Send"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4l7 7-1.4 1.4L13 7.8V20h-2V7.8l-4.6 4.6L5 11z"/></svg></button></form>
+    <div class="helper">Athelas Agent speaks for Rock Valley. You make the judgment calls.</div></div></div></section>${todayHTML()}</div>`;
+}
+
+/* ---------- Render ---------- */
+function render(opts={}){
+  renderTop();
+  const prev = $("#thread") ? $("#thread").scrollTop : 0;
+  $("#main").innerHTML = S.view==="home" ? `<div class="station">${homeHTML()}${todayHTML()}</div>` : claimHTML();
+  const t = $("#thread"); if (t) t.scrollTop = opts.keep ? prev : (opts.top ? 0 : t.scrollHeight);
+  if (!S.working && S.view in DISPUTES && !S.seen[S.view]) run(S.view, ()=>{ S.seen[S.view] = true; render({top:true}); });
+  if (!S.working && S.view==="d1" && S.d.d1.stage==="reviewing") run("pay", ()=>{ S.d.d1.stage = "won"; S.settledCount++; S.paidCount++; render(); });
+}
+let liveTimer = null;
+function playLive(){
+  clearTimeout(liveTimer);
+  const step = () => {
+    if (S.view!=="live") return;
+    if (S.livePos >= LIVE_SCRIPT.length - 1){ S.livePos = LIVE_SCRIPT.length - 1; S.liveDone = true; S.working = null; render(); return; }
+    S.livePos++; S.working = "live"; render();
+    liveTimer = setTimeout(step, reduced ? 50 : 1700);
+  };
+  liveTimer = setTimeout(step, reduced ? 50 : 600);
+}
+let timer = null;
+function run(key, done){
+  clearTimeout(timer); S.working = key; renderTop(); const v = S.view;
+  const n = STEPS[key].length; let i = 0;
+  const step = () => { if (S.view!==v){ S.working = null; renderTop(); return; }
+    document.querySelectorAll("#wb .ws").forEach((el,j)=>{ el.classList.toggle("done", j<i); el.classList.toggle("active", j===i); });
+    if (i>n){ S.working = null; done(); return; } i++; timer = setTimeout(step, reduced?60:(i>n?450:1250)); };
+  step();
+}
+function openClaim(view, claim){ clearTimeout(timer); S.working = null; S.view = view; S.claim = claim; S.left = null; render({top:true}); }
+
+/* Live settling ticker */
+setInterval(()=>{
+  let changed = false;
+  S.live.forEach(r=>{ if (r.gone) return; if (r.stage>=3){ r.doneTicks = (r.doneTicks||0)+1; if (r.doneTicks>1){ r.gone = true; S.settledCount++; changed = true; } } else { r.stage++; changed = true; } });
+  if (S.live.every(r=>r.gone)){ S.live = LIVE0.map((r,i)=>({...r, id:String(Number(r.id)+30+Math.floor(Math.random()*20)), stage:0, gone:false})); changed = true; }
+  if (changed && S.view==="home") render({keep:true});
+}, reduced ? 100000 : 2600);
+
+/* ---------- Events ---------- */
+document.addEventListener("click", e => {
+  const tr = e.target.closest("tr.row");
+  if (tr && !e.target.closest("button[data-grp]")){ if (tr.dataset.openD) return openClaim(tr.dataset.openD, DISPUTES[tr.dataset.openD].id); if (tr.dataset.settled) return openClaim("settled","22316691"); if (tr.dataset.live){ clearTimeout(timer); S.working = null; S.view = "live"; S.claim = "22316911"; S.left = null; S.livePos = 0; S.liveDone = false; render({top:true}); playLive(); return; } }
+  const el = e.target.closest("button"); if (!el) return;
+  if (el.hasAttribute("data-replay")){ S.livePos = 0; S.liveDone = false; render({top:true}); playLive(); return; }
+  if (el.dataset.go){ clearTimeout(timer); clearTimeout(liveTimer); S.working = null; S.view = "home"; S.claim = null; render(); return; }
+  if (el.dataset.openD){ openClaim(el.dataset.openD, DISPUTES[el.dataset.openD].id); return; }
+  if (el.dataset.settled){ openClaim("settled","22316691"); return; }
+  if (el.dataset.grp){ S.open[el.dataset.grp] = !S.open[el.dataset.grp]; render({keep:true}); return; }
+  if (el.dataset.panel){ S.panel = S.panel===el.dataset.panel && el.classList.contains("acc-h") ? null : el.dataset.panel; render({keep:true}); return; }
+  if (el.dataset.src || el.dataset.left!==undefined && el.hasAttribute("data-left")){ S.left = el.dataset.src || el.dataset.left || null; render({keep:true}); return; }
+  if (el.dataset.choose){ const [k,v] = el.dataset.choose.split(":"); S.d[k].choice = v; if (k==="d1" && v==="contest") S.d[k].stage = "reviewing"; render(); return; }
+  if (el.dataset.final){ const [k,v] = el.dataset.final.split(":"); S.d[k].stage = v; render(); return; }
+  if (el.dataset.undo){ const k = el.dataset.undo; S.d[k] = {choice:null, picked:null, stage:"open", ruleAsked:false, rule:null}; render(); return; }
+  if (el.dataset.rule){ const [k,v] = el.dataset.rule.split(":"); if (v==="yes"){ S.d[k].rule = true; S.network.unshift(["site", `Lorenza's rule \u201c${DISPUTES[k].rule}\u201d now applies to Rock Valley's claims.`, "Just now"]); } else S.d[k].ruleAsked = "no"; render(); return; }
+  if (el.dataset.pol){ const [k,v] = el.dataset.pol.split(":"); if (k==="contest") S.pol.contest = !S.pol.contest; else { const stepv = k==="adjust" ? 25 : 100; S.pol[k] = Math.max(0, S.pol[k] + (v==="+"?stepv:-stepv)); } render({keep:true}); return; }
+  if (el.dataset.chip){ chat(el.dataset.chip); return; }
+  if (el.id==="protoBtn"){ const p=$("#proto"); const on=!p.classList.contains("show"); p.classList.toggle("show",on); el.setAttribute("aria-expanded",on); return; }
+  if (el.id==="aiBtn"){ const i = document.querySelector("form[data-ask] input"); if (i) i.focus(); return; }
+  if (el.dataset.jump){ const j = el.dataset.jump; clearTimeout(timer); S = fresh();
+    if (j==="d1"){ S.seen.d1 = true; openClaim("d1", DISPUTES.d1.id); return; }
+    if (j==="d2"){ S.seen.d2 = true; openClaim("d2", DISPUTES.d2.id); return; }
+    if (j==="d1won"){ S.seen.d1 = true; S.d.d1.choice = "contest"; S.d.d1.stage = "won"; S.settledCount++; S.paidCount++; openClaim("d1", DISPUTES.d1.id); render(); return; }
+    if (j==="settled"){ openClaim("settled","22316691"); return; }
+    if (j==="live"){ S.view = "live"; S.claim = "22316911"; S.livePos = 0; S.liveDone = false; render({top:true}); playLive(); return; }
+    render(); }
+});
+document.addEventListener("keydown", e => { const tr = e.target.closest && e.target.closest("tr.row"); if (tr && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
+document.addEventListener("submit", e => { const f = e.target.closest("form[data-ask]"); if (!f) return; e.preventDefault(); const i = f.querySelector("input"); const v = i.value; i.value = ""; chat(v); });
+function chat(t){
+  t = t.trim(); if (!t) return; const q = t.toLowerCase();
+  if (q.includes("back to settlement")){ clearTimeout(liveTimer); S.view = "home"; S.claim = null; render(); return; }
+  const log = S.chat[S.view] = S.chat[S.view] || []; log.push({u:true, t});
+  const d = DISPUTES[S.view];
+  let a;
+  if (q.includes("see")) a = `<p>Athelas Agent sees Rock Valley's full records. The patient agent sees only what ${d?d.patient.split(" ")[0]:"the patient"} consented to share. The payer agent sees only the claim and the evidence shared for it. Nothing else crosses over.</p>`;
+  else if (q.includes("why") && d) a = `<p>${esc(d.q)} Everything else on this claim is settled.</p>`;
+  else if (q.includes("would you") && d) a = `<p>${esc(d.view)} But this is a judgment call, so it's yours.</p>`;
+  else a = `<p>I can explain why the agents disagree, what each choice means, or what each agent could see.</p>`;
+  log.push({u:false, t:a}); render();
+}
+render();
+</script></body></html>
